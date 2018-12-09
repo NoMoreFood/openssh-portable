@@ -277,8 +277,8 @@ w32_fopen_utf8(const char *input_path, const char *mode)
 	wmode = utf8_to_utf16(mode);
 	if (wpath == NULL || wmode == NULL)
 		goto cleanup;
-
-	if ((_wfopen_s(&f, wpath, wmode) != 0) || (f == NULL)) {
+	
+	if ((f = _wfsopen(wpath, wmode, _SH_DENYNO)) == NULL) {
 		debug3("Failed to open file:%S error:%d", wpath, errno);
 		goto cleanup;
 	}	
