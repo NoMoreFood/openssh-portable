@@ -65,5 +65,6 @@ snmprintf(char *buf, size_t len, int *written, const char *fmt, ...)
 void
 msetlocale(void)
 {
+	SetConsoleOutputCP(CP_UTF8);
 }
 

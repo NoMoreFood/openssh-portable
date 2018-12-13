@@ -53,15 +53,15 @@ is_conpty_supported()
 	}
 
 	wcscat_s(kernel32_dll_path, PATH_MAX, system32_path);
-	wcscat_s(kernel32_dll_path, PATH_MAX, L"\\Kernel32.dll");
+	wcscat_s(kernel32_dll_path, PATH_MAX, L"\\kernel32.dll");
 
 	if ((hm_kernelbase = LoadLibraryW(kernel32_dll_path)) == NULL) {
-		error("failed to load kernerlbase dll:%s", kernel32_dll_path);
+		error("failed to load kernel32.dll:%s", kernel32_dll_path);
 		goto done;
 	}
 
 	if (GetProcAddress(hm_kernelbase, "CreatePseudoConsole") == NULL) {
-		debug3("couldn't find CreatePseudoConsole() in kernerlbase dll");
+		debug3("couldn't find CreatePseudoConsole() in kernel32.dll");
 		goto done;
 	}
 

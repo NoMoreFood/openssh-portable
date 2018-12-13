@@ -145,4 +145,5 @@ int is_cursor_at_lastline_of_visible_window();
 void ConGetCursorPosition(int *x, int *y);
 void ConMoveCursorTopOfVisibleWindow();
 HANDLE get_console_handle(FILE *, DWORD *);
+HANDLE GetConsoleOutputHandle();
 #endif

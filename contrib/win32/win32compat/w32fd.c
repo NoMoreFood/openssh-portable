@@ -1183,12 +1183,12 @@ fd_decode_state(char* enc_buf)
 	struct inh_fd_state *c;
 	int num_inherited = 0;
 
-	CryptStringToBinary(enc_buf, 0, CRYPT_STRING_BASE64 | CRYPT_STRING_STRICT, NULL, &req, &skipped, &out_flags);
+	CryptStringToBinaryA(enc_buf, 0, CRYPT_STRING_BASE64 | CRYPT_STRING_STRICT, NULL, &req, &skipped, &out_flags);
 	buf = malloc(req);
 	if (!buf) 
 		fatal("out of memory");
 
-	CryptStringToBinary(enc_buf, 0, CRYPT_STRING_BASE64 | CRYPT_STRING_STRICT, buf, &req, &skipped, &out_flags);
+	CryptStringToBinaryA(enc_buf, 0, CRYPT_STRING_BASE64 | CRYPT_STRING_STRICT, buf, &req, &skipped, &out_flags);
 
 	std_fd_state = (struct std_fd_state *)buf;
 	fd_table.w32_ios[0]->type = std_fd_state->in_type;

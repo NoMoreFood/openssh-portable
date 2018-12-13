@@ -139,7 +139,7 @@ ConEnterRawMode()
 		return;
 	}
 
-	SetConsoleTitle(consoleTitle);
+	SetConsoleTitleA(consoleTitle);
 
 	dwAttributes = stdin_dwSavedAttributes;
 	dwAttributes &= ~(ENABLE_LINE_INPUT |
@@ -160,6 +160,7 @@ ConEnterRawMode()
 
 	dwAttributes = stdout_dwSavedAttributes;
 	dwAttributes |= (DWORD)ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
+	dwAttributes &= ~(ENABLE_WRAP_AT_EOL_OUTPUT);
 
 	char *envValue = NULL;
 	size_t len = 0;	
@@ -1576,7 +1577,7 @@ void
 ConRestoreViewRect()
 {
 	CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
-	HWND hwnd = FindWindow(NULL, consoleTitle);
+	HWND hwnd = FindWindowA(NULL, consoleTitle);
 
 	WINDOWPLACEMENT wp;
 	wp.length = sizeof(WINDOWPLACEMENT);

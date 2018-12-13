@@ -320,7 +320,7 @@ local_do_shell(const char *args)
 	/* execute via system call in Windows*/	
 	if (!*args) {
 		char cmd_path[PATH_MAX] = { 0, };
-		if (!GetSystemDirectory(cmd_path, sizeof(cmd_path)))
+		if (!GetSystemDirectoryA(cmd_path, sizeof(cmd_path)))
 			fatal("GetSystemDirectory failed");
 
 		strcat_s(cmd_path, PATH_MAX, "\\cmd.exe");

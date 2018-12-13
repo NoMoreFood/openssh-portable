@@ -120,7 +120,7 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 			continue;
 		} else {
 			ret = -1;
-			if (ConvertSidToStringSid(current_trustee_sid, &bad_user) == FALSE) {
+			if (ConvertSidToStringSidA(current_trustee_sid, &bad_user) == FALSE) {
 				debug3("ConvertSidToSidString failed with %d. ", GetLastError());
 				break;
 			}

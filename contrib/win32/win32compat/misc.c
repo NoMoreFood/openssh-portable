@@ -65,6 +65,7 @@
 #include "inc\time.h"
 
 #include <wchar.h>
+#include "tncon.h"
 
 static char* s_programdir = NULL;
 
@@ -437,15 +438,20 @@ w32_ioctl(int d, int request, ...)
 	case TIOCGWINSZ: {
 		struct winsize* wsize = va_arg(valist, struct winsize*);
 		CONSOLE_SCREEN_BUFFER_INFO c_info;
-		if (wsize == NULL || !GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &c_info)) {
+
+		if (wsize == NULL || !GetConsoleScreenBufferInfo(GetConsoleOutputHandle(), &c_info)) {
 			errno = EINVAL;
 			return -1;
 		}
 
+		ConSaveViewRect();
+		RECT hSize;
+		GetClientRect(GetConsoleWindow(), &hSize);
+
 		wsize->ws_col = c_info.dwSize.X;
 		wsize->ws_row = c_info.srWindow.Bottom - c_info.srWindow.Top + 1;
-		wsize->ws_xpixel = 640;
-		wsize->ws_ypixel = 480;
+		wsize->ws_xpixel = hSize.right - hSize.left;
+		wsize->ws_ypixel = hSize.bottom - hSize.top;
 
 		return 0;
 	}

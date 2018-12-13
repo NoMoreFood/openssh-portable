@@ -134,7 +134,7 @@ ReadConsoleForTermEmul(HANDLE hInput, char *destin, int destinlen)
 	DWORD dwControlKeyState = 0;
 	DWORD dwAltGrFlags = LEFT_CTRL_PRESSED | RIGHT_ALT_PRESSED;
 	DWORD rc = 0;
-	unsigned char octets[20];	
+	unsigned char octets[20] = "";	
 	char aChar = 0;
 	INPUT_RECORD InputRecord;
 	BOOL bCapsOn = FALSE;

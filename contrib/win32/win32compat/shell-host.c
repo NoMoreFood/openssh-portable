@@ -1201,7 +1201,6 @@ ConsoleEventProc(HWINEVENTHOOK hWinEventHook,
 void
 ProcessMessages(void* p)
 {
-	DWORD dwStatus;
 	SECURITY_ATTRIBUTES sa;
 	MSG msg;
 
@@ -1237,7 +1236,6 @@ ProcessMessages(void* p)
 	}
 
 	/* cleanup */
-	dwStatus = GetLastError();
 	if (child_in != INVALID_HANDLE_VALUE)
 		CloseHandle(child_in);
 	if (child_out != INVALID_HANDLE_VALUE)
@@ -1252,7 +1250,6 @@ start_with_pty(wchar_t *command)
 	wchar_t *cmd = (wchar_t *)malloc(sizeof(wchar_t) * MAX_CMD_LEN);
 	SECURITY_ATTRIBUTES sa;
 	BOOL ret;
-	DWORD dwStatus;
 	HANDLE hEventHook = NULL;
 	HMODULE hm_kernel32 = NULL, hm_user32 = NULL;
 	wchar_t kernel32_dll_path[PATH_MAX]={0,}, user32_dll_path[PATH_MAX]={0,};
@@ -1367,7 +1364,7 @@ start_with_pty(wchar_t *command)
 
 	ProcessMessages(NULL);
 cleanup:
-	dwStatus = GetLastError();
+	
 	if (child != INVALID_HANDLE_VALUE)
 		TerminateProcess(child, 0);
 
