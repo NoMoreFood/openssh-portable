@@ -234,7 +234,7 @@ dlclose(HMODULE handle)
 	return 0;
 }
 
-FARPROC 
+void * __stdcall
 dlsym(HMODULE handle, const char *symbol)
 {
 	return GetProcAddress(handle, symbol);
