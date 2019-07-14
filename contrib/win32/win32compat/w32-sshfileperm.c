@@ -43,9 +43,8 @@
 /*
 * The function is to check if current user is secure to access to the file. 
 * Check the owner of the file is one of these types: Local Administrators groups, system account, current user account
-* Check the users have access permission to the file don't voilate the following rules:	
-	1. no user other than local administrators group, system account, and pwd user have write permission on the file
-	2. sshd account can only have read permission	
+* Check the users have access permission to the file don't violate the following rules:	
+*    1. no user other than local administrators group, system account, and pwd user have write permission on the file
 * Returns 0 on success and -1 on failure
 */
 int
@@ -53,6 +52,8 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 {	
 	PSECURITY_DESCRIPTOR pSD = NULL;
 	wchar_t * path_utf16 = NULL;
+	wchar_t * user_sid_string = NULL;
+	wchar_t * owner_sid_string = NULL;
 	PSID owner_sid = NULL, user_sid = NULL;
 	PACL dacl = NULL;
 	DWORD error_code = ERROR_SUCCESS; 
@@ -60,40 +61,52 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 	char *bad_user = NULL;
 	int ret = 0;
 
-	if ((user_sid = get_sid(pw ? pw->pw_name : NULL)) == NULL)
-		goto cleanup;
-
 	if ((path_utf16 = resolved_path_utf16(input_path)) == NULL) {
 		ret = -1;
 		goto cleanup;
 	}
 
-	/*Get the owner sid of the file.*/
+	debug3("%s: Checking file security on: %S", __FUNCTION__, path_utf16);
+	if ((user_sid = get_sid(pw ? pw->pw_name : NULL)) == NULL)
+		goto cleanup;
+	ConvertSidToStringSidW(user_sid, &user_sid_string);
+	debug3("%s: User SID: %S", __FUNCTION__, user_sid_string);
+
+	/* special case: user looks like a local computer sid */
+	if (*GetSidSubAuthorityCount(user_sid) == 4) {
+		debug3("%s: User SID looks like it might be a computer SID", __FUNCTION__);
+		debug3("%s: Please make sure the computer name and username are different", __FUNCTION__);
+	}
+
+	/* retrieve owner and permissions on the owner of the file  */
 	if ((error_code = GetNamedSecurityInfoW(path_utf16, SE_FILE_OBJECT,
 		OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
 		&owner_sid, NULL, &dacl, NULL, &pSD)) != ERROR_SUCCESS) {
-		debug3("failed to retrieve the owner sid and dacl of file %S with error code: %d", path_utf16, error_code);
+		debug3("%s: Failed to retrieve the owner SID and DACL with error code: %d", __FUNCTION__, error_code);
 		errno = EOTHER;
 		ret = -1;
 		goto cleanup;
 	}
+	ConvertSidToStringSidW(owner_sid, &owner_sid_string);
+	debug3("Owner SID: %S", owner_sid_string);
+
 	if (((is_valid_sid = IsValidSid(owner_sid)) == FALSE) || ((is_valid_acl = IsValidAcl(dacl)) == FALSE)) {
-		debug3("IsValidSid: %d; is_valid_acl: %d", is_valid_sid, is_valid_acl);		
+		debug3("%s: IsValidSid: %d; IsValidAcl: %d", __FUNCTION__, is_valid_sid, is_valid_acl);
 		ret = -1;
 		goto cleanup;
 	}
+
 	if (!IsWellKnownSid(owner_sid, WinBuiltinAdministratorsSid) &&
 		!IsWellKnownSid(owner_sid, WinLocalSystemSid) &&
 		!EqualSid(owner_sid, user_sid)) {
-		debug3("Bad owner on %S", path_utf16);
+		debug3("%s, Unauthorized owner on file.", __FUNCTION__);
 		ret = -1;
 		goto cleanup;
 	}
 	/*
-	iterate all aces of the file to find out if there is voilation of the following rules:
-		1. no others than administrators group, system account, and current user account have write permission on the file
-		2. sshd account can only have read permission
-	*/
+	 * iterate all aces of the file to find out if there is voilation of the following rules:
+	 *    1. no others than administrators group, system account, and current user account have write permission on the file
+	 */
 	for (DWORD i = 0; i < dacl->AceCount; i++) {
 		PVOID current_ace = NULL;
 		PACE_HEADER current_aceHeader = NULL;
@@ -144,11 +157,11 @@ check_secure_file_permission(const char *input_path, struct passwd * pw)
 
 			ret = -1;
 			if (ConvertSidToStringSid(current_trustee_sid, &bad_user) == FALSE) {
-				debug3("ConvertSidToSidString failed with %d. ", GetLastError());
+				debug3("%s: ConvertSidToSidString failed with %d. ", __FUNCTION__, GetLastError());
 				break;
 			}
-			debug3("Bad permissions. Try removing permissions for user: %S\\%S (%s) on file %S.", 
-				resolved_trustee_domain, resolved_trustee, bad_user, path_utf16);
+			debug3("%s: Bad permissions. Try removing permissions for user: %S\\%S (%s) on file %S.", 
+				__FUNCTION__, resolved_trustee_domain, resolved_trustee, bad_user, path_utf16);
 			break;
 		}
 	}	
@@ -161,6 +174,10 @@ cleanup:
 		free(user_sid);
 	if(path_utf16)
 		free(path_utf16);
+	if (owner_sid_string)
+		LocalFree(owner_sid_string);
+	if (user_sid_string)
+		LocalFree(user_sid_string);
 	return ret;
 }
 
