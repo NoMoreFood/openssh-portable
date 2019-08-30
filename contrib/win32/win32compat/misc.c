@@ -247,7 +247,9 @@ dlclose(HMODULE handle)
 	return 0;
 }
 
+
 void *
+
 dlsym(HMODULE handle, const char *symbol)
 {
 	void *ptr = GetProcAddress(handle, symbol);
